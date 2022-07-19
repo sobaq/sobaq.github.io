@@ -1,0 +1,3 @@
+{% for post in posts %}
+	<p>{{ strftime(post.2) }} | <a href="{{ relative('/post/'  ~ post[2]|round|int) }}">{{ post.0 }}</a></p>
+{% endfor %}

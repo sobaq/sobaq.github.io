@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{ post.0|title }}</title>
+
+		{% include 'components/head.html' %}
+    </head>
+    <body>
+		{% include 'components/header.html' %}
+
+		
+		{{ post.1|safe }}
+    </body>
+</html>
