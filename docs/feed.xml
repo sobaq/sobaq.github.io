@@ -1,2 +1,169 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>noati.me</title><link>https://noati.me//feed.xml</link><description>https://noati.me/</description><atom:link href="https://noati.me//feed.xml" rel="self"/><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://noati.me//favicon.png</url><title>noati.me</title><link>https://noati.me//feed.xml</link></image><language>en</language><lastBuildDate>Tue, 19 Jul 2022 00:14:33 +0000</lastBuildDate></channel></rss>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>noati.me</title><link>https://noati.me//feed.xml</link><description>https://noati.me/</description><atom:link href="https://noati.me//feed.xml" rel="self"/><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://noati.me//favicon.png</url><title>noati.me</title><link>https://noati.me//feed.xml</link></image><language>en</language><lastBuildDate>Sun, 24 Jul 2022 05:59:39 +0000</lastBuildDate><item><title>Needle In A Discord Haystack</title><link>https://noati.me//docs/post/1658631497</link><description>&lt;p&gt;A few days ago I recalled a friend in a private Discord server sending a
+message I &lt;em&gt;think&lt;/em&gt; was very funny; though I didn't precisely remember what it said,
+I remember being entertained.&lt;/p&gt;
+&lt;p&gt;I could remember how the message started (a few characters of the first word),
+and how it ended (an emoji). Unfortunately, Discord's built-in search feature
+isn't very good at searching for &lt;em&gt;either&lt;/em&gt; of those things.&lt;/p&gt;
+&lt;p&gt;But I really wanted to find this message.&lt;/p&gt;
+&lt;p&gt;So I took it upon myself to create a Discord bot solely to find this one message.&lt;/p&gt;
+&lt;p&gt;The concept was simple: Make a bot that, upon joining a
+guild&lt;sup&gt;&lt;a id="1body" href="#1"&gt;[1]&lt;/a&gt;&lt;/sup&gt;,
+looks at every message in every channel and stores them in a database that you can
+query in some way that's better than whatever Discord is doing. Ez.&lt;/p&gt;
+&lt;pre&gt;&lt;code class="lang-python"&gt;
+@bot.event
+async def on_guild_join(guild):
+...
+    await scrape(guild)
+
+async def scrape(guild):
+...
+    async for message in channel.history(limit=None):
+        msgs += 1
+        cur.execute('''INSERT OR IGNORE INTO messages
+            (id, guild, author, author_nickname, contents, created, channel) VALUES (?, ?, ?, ?, ?, ?, ?)''',
+            (message.id, message.guild.id, message.author.id, message.author.display_name, message.content,
+                int(time.mktime(message.created_at.timetuple())), message.channel.id))
+...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Done!&lt;/p&gt;
+&lt;p&gt;It takes a while to get itself up to speed — I think the ~200,000 messages in this
+server took about an hour, which I personally attribute to the Discord API having
+a hard limit of returning 200 messages per request. Nonetheless, we got there:&lt;/p&gt;
+&lt;pre&gt;
+sqlite&gt; SELECT * FROM messages ORDER BY RANDOM() LIMIT 1;
+[redacted]|[redacted]|[redacted]|noatime|the only fast browser is Netscape Navigator 4.0|[redacted]|[redacted]
+&lt;/pre&gt;
+
+&lt;p&gt;Now I had to figure out how I wanted to query this data. The kind of filters I'd
+want came to me pretty quickly.&lt;/p&gt;
+&lt;pre&gt;&lt;code class="lang-python"&gt;
+@bot.slash_command()
+@guild_only()
+async def look(ctx,
+        query: str,
+        max_count:   int = 25,
+        min_length:  int = None,
+        max_length:  int = None,
+        starts_with: str = None,
+        ends_with:   str = None,
+        case_sensitive: bool = False,
+        channel: discord.TextChannel  = None,
+        author:  discord.User         = None,
+    ):
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now I needed to settle on the actual search algorithm. At first I tried using &lt;code&gt;fnmatch.fnmatch&lt;/code&gt;
+from Python's &lt;a href="https://docs.python.org/3/library/fnmatch.html"&gt;fnmatch&lt;/a&gt; built-in library,
+but fnmatch, being similar to a cut-down &lt;a href="https://en.wikipedia.org/wiki/Glob_(programming)"&gt;Glob&lt;/a&gt;,
+was naturally inadequate.&lt;/p&gt;
+&lt;p&gt;Fortunately, a few minutes of Googling surfaced &lt;a href="https://github.com/seatgeek/thefuzz"&gt;thefuzz&lt;/a&gt;,
+a fuzzy-finding library that harnessess &lt;a href="https://en.wikipedia.org/wiki/Levenshtein_distance"&gt;Levenshtein distancing&lt;/a&gt;,
+a string metric algorithm I definitely understand.&lt;/p&gt;
+&lt;p&gt;TheFuzz comes with a few different variations of fuzzy finding. Simple ratio, partial ratio, token sort ratio,
+and token set ratio. At first I tried simple ratio because it sounded simple, but the similarity score is severely
+penalised when queries lack words from the source or has words in the wrong order, which I found were common
+mistakes to occur when recalling message content.&lt;/p&gt;
+&lt;pre&gt;&lt;code class="lang-python"&gt;
+&gt;&gt;&gt; fuzz.ratio('A test sentence', 'A sentence test')
+67
+&gt;&gt;&gt; fuzz.ratio('A test', 'A test sentence')
+57
+&gt;&gt;&gt; fuzz.ratio('Aa test sentenc', 'A test sentence')
+93
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Instead, I found token set ratio, which didn't penalise for word duplicates nor word order, fit the bill better.&lt;/p&gt;
+&lt;pre&gt;&lt;code class="lang-python"&gt;
+&gt;&gt;&gt; fuzz.token_set_ratio('A test sentence', 'A sentence test')
+100
+&gt;&gt;&gt; fuzz.token_set_ratio('A test', 'A test sentence')
+100
+&gt;&gt;&gt; fuzz.token_set_ratio('Aa test sentenc', 'A test sentence')
+93
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And with the fuzz returning a similarity score rather than a simple &lt;code&gt;True&lt;/code&gt;/&lt;code&gt;False&lt;/code&gt;, I added a threshold parameter
+to the bot too.&lt;/p&gt;
+&lt;pre&gt;&lt;code class="lang-python"&gt;
+async def look(ctx,
+...
+        channel: discord.TextChannel  = None,
+        author:  discord.User         = None,
+        similarity_threshold: int  = 75,
+    ):
+...
+    messages = cur.execute('SELECT * FROM messages WHERE guild = ?', (ctx.guild.id,)).fetchall()
+
+    if max_count &gt; 25:
+        max_count = 25
+
+    count = 0
+    for message in messages:
+        if fuzz.token_set_ratio(query, message_text) &gt;= similarity_threshold:
+            count += 1
+            response.append_field(
+                discord.EmbedField(
+                    name=message[3],
+                    value=f'{message[4]}\nSent {datetime.utcfromtimestamp(message[5]).strftime("%Y/%m/%d %H:%M:%S")}+00:00. **[Link](https://discord.com/channels/{ctx.guild.id}/{message[6]}/{message[0]})**.'
+                )
+            )
+...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And sure enough, with that few hours of work and the query &lt;code&gt;/look query:[redacted] author:[redacted] min_length:5 max_length:25 ends_with:😭 case_sensitive:false&lt;/code&gt;:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="/img/found_message.png" /&gt;&lt;/p&gt;
+&lt;hr&gt;
+
+&lt;p&gt;&lt;sup id="1"&gt;&lt;a href="#1body"&gt;[1]&lt;/a&gt;&lt;/sup&gt; The Discord API docs call servers &lt;em&gt;guilds&lt;/em&gt;&lt;/p&gt;</description><guid isPermaLink="false">https://noati.me//docs/post/1658631497</guid></item><item><title>Upgrading A Minecraft World To 1.18</title><link>https://noati.me//docs/post/1658637234</link><description>&lt;p&gt;I couldn't find anybody documenting what happens to the -Y axis world generation when a
+Minecraft world is updated from 1.17&amp;lt;=, where the -Y limit is 0, to post-1.18 where it's
+-64; so I thought I should do it myself.&lt;/p&gt;
+&lt;p&gt;To my surprise, in a world I created in 1.17 then immediately copied to 1.19, the bedrock
+at layer 0 was replaced with 1.18 world generation down to -64 — as if the world were generated
+in 1.18.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="/img/1.18_bedrock_ow.png" /&gt;&lt;/p&gt;
+&lt;p&gt;Though in immediate hindsight, this probably is the best solution. There aren't any blocks that
+can be placed on bedrock but not deepslate, and blocks can't appear in the void, so there's
+nothing to be inadvertently overwritten.&lt;/p&gt;
+&lt;p&gt;Out of further curiousity, I used &lt;a href="https://github.com/FabricMC/yarn"&gt;Yarn&lt;/a&gt; to
+peek into the code that does this; turns out it's kept in &lt;code&gt;client/net/minecraft/world/chunk/BelowZeroRetrogen.java&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code class="language-java"&gt;
+public static void replaceOldBedrock(ProtoChunk chunk) {
+    BlockPos.iterate(0, 0, 0, 15, 4, 15).forEach(pos -&gt; {
+        if (chunk.getBlockState(pos).isOf(Blocks.BEDROCK)) {
+            chunk.setBlockState(pos, Blocks.DEEPSLATE.getDefaultState(), false);
+        }
+    });
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;However it appears as if Minecraft checks if bedrock is missing where the worldgen would expect
+it to be, and if it is, it's &lt;em&gt;left&lt;/em&gt; missing instead of being replaced by bedrock.&lt;/p&gt;
+&lt;pre&gt;&lt;code class="language-java"&gt;
+public void fillColumnsWithAirIfMissingBedrock(ProtoChunk chunk) {
+    HeightLimitView lv = chunk.getHeightLimitView();
+    int i = lv.getBottomY();
+    int j = lv.getTopY() - 1;
+
+    for (int k = 0; k &lt; 16; ++k) {
+        for (int l = 0; l &lt; 16; ++l) {
+            if (!this.isColumnMissingBedrock(k, l)) continue;
+            BlockPos.iterate(k, i, l, k, j, l).forEach(pos -&gt;
+                chunk.setBlockState(pos, Blocks.AIR.getDefaultState(), false));
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And that is exactly so! Here's a hole made in bedrock at level 0 in 1.17:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="/img/1.17_hole.png" /&gt;&lt;/p&gt;
+&lt;p&gt;And that same world opened in 1.19:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="/img/1.18_level_zero_hole.png" /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="/img/1.18_hole_look_down.png" /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="/img/1.18_kept_hole.png" /&gt;&lt;/p&gt;
+&lt;p&gt;This was probably added so as to not greatly annoy technical Minecrafters :-)&lt;/p&gt;
+&lt;p&gt;And as an aside — whether a world has undergone below-zero retrogeneration apparently sticks around,
+serialized into the world save.&lt;/p&gt;
+&lt;p&gt;Neat.&lt;/p&gt;</description><guid isPermaLink="false">https://noati.me//docs/post/1658637234</guid></item></channel></rss>

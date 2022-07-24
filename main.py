@@ -12,10 +12,11 @@ import shutil
 
 ROOT_URL = 'https://noati.me/'
 AUTHOR   = 'noati.me'
+CNAME    = 'noati.me'
 
 def gen_posts():
-	posts = [(re.split('\\\\|/', x)[1][:-3].title(),
-			  markdown(open(x).read()),
+	posts = [(re.split('\\\\|/', x)[1][:-3].title().replace('_', ' '),
+			  markdown(open(x, encoding='UTF-8').read()),
 			  os.path.getctime(x)
 			 )
 		for x in sorted(filter(os.path.isfile, glob.iglob('raw/*.md')),
@@ -28,7 +29,7 @@ def gen_buttons():
 
 def main():
 	try: shutil.rmtree('docs')
-	except PermissionError: pass
+	except (FileNotFoundError, PermissionError): pass
 
 	if len(sys.argv) == 2 and sys.argv[1] == 'clean':
 		return
@@ -44,6 +45,10 @@ def main():
 
 	posts = gen_posts()
 
+	# CNAME
+	if CNAME:
+		open('docs/CNAME', 'w').write(CNAME)
+
 	# Index
 	buttons = gen_buttons()
 	open('docs/index.html', 'w', encoding='UTF-8').write(jinja_env.get_template('index.html').render(title=AUTHOR, posts=posts, buttons=buttons))
@@ -52,7 +57,7 @@ def main():
 	for filename in glob.iglob('templates/*.html'):
 		filename = re.split('\\\\|/', filename)[1]
 		foldername = filename.split('.html')[0]
-		if filename == 'index.html':
+		if filename in ['index.html', 'post.html']:
 			continue
 
 		os.makedirs(f'docs/{foldername}', exist_ok=True)
@@ -73,7 +78,10 @@ def main():
 
 		# Generate HTML
 		os.makedirs(path, exist_ok=True)
-		open(f'{path}/index.html', 'w', encoding='UTF-8').write(jinja_env.get_template('components/post.html').render(title=post[0], post=post))
+		open(f'{path}/index.html', 'w', encoding='UTF-8').write(jinja_env.get_template('post.html').render(title=post[0], post=post))
+
+		# Copy images over
+		shutil.copytree('raw/img', 'docs/img', dirs_exist_ok=True)
 
 		# Generate RSS
 		fe = fg.add_entry()
