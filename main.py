@@ -3,6 +3,8 @@ from jinja2 import Environment, PackageLoader
 from feedgen.feed import FeedGenerator
 
 from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
 from base64 import b64encode
 import glob
 import re
@@ -89,6 +91,7 @@ def main():
 		fe.title(post[0])
 		fe.link(href=f'{ROOT_URL}/{path}')
 		fe.author(name=AUTHOR)
+		fe.published(datetime.utcfromtimestamp(post[2]).replace(tzinfo=timezone(timedelta())))
 		fe.content(post[1])
 	
 	# Write out RSS

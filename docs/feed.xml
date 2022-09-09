@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>noati.me</title><link>https://noati.me//feed.xml</link><description>https://noati.me/</description><atom:link href="https://noati.me//feed.xml" rel="self"/><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://noati.me//favicon.png</url><title>noati.me</title><link>https://noati.me//feed.xml</link></image><language>en</language><lastBuildDate>Sun, 24 Jul 2022 05:59:39 +0000</lastBuildDate><item><title>Needle In A Discord Haystack</title><link>https://noati.me//docs/post/1658631497</link><description>&lt;p&gt;A few days ago I recalled a friend in a private Discord server sending a
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>noati.me</title><link>https://noati.me//feed.xml</link><description>https://noati.me/</description><atom:link href="https://noati.me//feed.xml" rel="self"/><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://noati.me//favicon.png</url><title>noati.me</title><link>https://noati.me//feed.xml</link></image><language>en</language><lastBuildDate>Fri, 09 Sep 2022 12:59:35 +0000</lastBuildDate><item><title>Needle In A Discord Haystack</title><link>https://noati.me//docs/post/1658631497</link><description>&lt;p&gt;A few days ago I recalled a friend in a private Discord server sending a
 message I &lt;em&gt;think&lt;/em&gt; was very funny; though I didn't precisely remember what it said,
 I remember being entertained.&lt;/p&gt;
 &lt;p&gt;I could remember how the message started (a few characters of the first word),
@@ -117,7 +117,7 @@ async def look(ctx,
 &lt;p&gt;&lt;img alt="" src="/img/found_message.png" /&gt;&lt;/p&gt;
 &lt;hr&gt;
 
-&lt;p&gt;&lt;sup id="1"&gt;&lt;a href="#1body"&gt;[1]&lt;/a&gt;&lt;/sup&gt; The Discord API docs call servers &lt;em&gt;guilds&lt;/em&gt;&lt;/p&gt;</description><guid isPermaLink="false">https://noati.me//docs/post/1658631497</guid></item><item><title>Upgrading A Minecraft World To 1.18</title><link>https://noati.me//docs/post/1658637234</link><description>&lt;p&gt;I couldn't find anybody documenting what happens to the -Y axis world generation when a
+&lt;p&gt;&lt;sup id="1"&gt;&lt;a href="#1body"&gt;[1]&lt;/a&gt;&lt;/sup&gt; The Discord API docs call servers &lt;em&gt;guilds&lt;/em&gt;&lt;/p&gt;</description><guid isPermaLink="false">https://noati.me//docs/post/1658631497</guid><pubDate>Sun, 24 Jul 2022 02:58:17 +0000</pubDate></item><item><title>Upgrading A Minecraft World To 1.18</title><link>https://noati.me//docs/post/1658637234</link><description>&lt;p&gt;I couldn't find anybody documenting what happens to the -Y axis world generation when a
 Minecraft world is updated from 1.17&amp;lt;=, where the -Y limit is 0, to post-1.18 where it's
 -64; so I thought I should do it myself.&lt;/p&gt;
 &lt;p&gt;To my surprise, in a world I created in 1.17 then immediately copied to 1.19, the bedrock
@@ -166,4 +166,4 @@ public void fillColumnsWithAirIfMissingBedrock(ProtoChunk chunk) {
 &lt;p&gt;This was probably added so as to not greatly annoy technical Minecrafters :-)&lt;/p&gt;
 &lt;p&gt;And as an aside — whether a world has undergone below-zero retrogeneration apparently sticks around,
 serialized into the world save.&lt;/p&gt;
-&lt;p&gt;Neat.&lt;/p&gt;</description><guid isPermaLink="false">https://noati.me//docs/post/1658637234</guid></item></channel></rss>
+&lt;p&gt;Neat.&lt;/p&gt;</description><guid isPermaLink="false">https://noati.me//docs/post/1658637234</guid><pubDate>Sun, 24 Jul 2022 04:33:53 +0000</pubDate></item></channel></rss>
