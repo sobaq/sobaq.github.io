@@ -1,3 +1,10 @@
 # noati.me
 
-Jinja (`/templates`) + Markdown (`/raw`) + RSS = <https://noati.me/>
+Learning Elm. <https://noati.me/>.
+
+# Building
+
+```bash
+nix-shell
+build
+```

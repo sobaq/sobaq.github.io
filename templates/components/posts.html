@@ -1,5 +1,0 @@
-<ul style="list-style-type: none; padding-left: 0;">
-{% for post in posts %}
-	<li style="margin-top: 0;">{{ strftime(post.2) }} | <a href="{{ relative('/post/'  ~ post[2]|round|int) }}">{{ post.0 }}</a></li>
-{% endfor %}
-</ul>
