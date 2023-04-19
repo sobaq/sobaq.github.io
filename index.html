@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="latex.css" rel="stylesheet"></link>
+    <title>noati.me</title>
+</head>
+<body>
+<style>
+a { text-decoration: none; }
+main { counter-reset: section subsection; }
+section { counter-reset: subsection; }
+h2::before { counter-increment: section; content: counter(section) ". "; }
+h3::before { counter-increment: subsection; content: counter(subsection) ". "; }
+</style>
+	<header>
+		<h1>noati.me</h1>
+	</header>
+	<main>
+		<section>
+			<h2>Hello</h2>
+			<p>I like C and Haskell.</p>
+		<section>
+			<h2>Projects</h2>
+			<h3>emotion-nginx</h3>
+			<p>
+				A web server for the PlayStation 2.
+				<ul>
+						<li><a href="https://github.com/6e6f61/emotion-nginx">repo</a></li>
+				</ul>
+			</p>
+
+			<h3>nlive</h3>
+			<p>
+				A nonchalant live server.
+				<ul>
+						<li><a href="https://github.com/6e6f61/nlive">repo</a></li>
+				</ul>
+			</p>
+		</section>
+		<img src="amd_powered.gif">
+		<img src="nixos_powered.gif">
+		<img src="xmr.gif">
+		<img src="burn_ms_products.gif">
+	</main>
+</body>
+</html>
