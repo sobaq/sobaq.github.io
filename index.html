@@ -14,6 +14,7 @@ main { counter-reset: section subsection; }
 section { counter-reset: subsection; }
 h2::before { counter-increment: section; content: counter(section) ". "; }
 h3::before { counter-increment: subsection; content: counter(subsection) ". "; }
+img { max-width: 100%; }
 </style>
 	<header>
 		<h1>noati.me</h1>
@@ -28,7 +29,20 @@ h3::before { counter-increment: subsection; content: counter(subsection) ". "; }
 			<p>
 				A web server for the PlayStation 2.
 				<ul>
-						<li><a href="https://github.com/6e6f61/emotion-nginx">repo</a></li>
+					<li><a href="https://github.com/6e6f61/emotion-nginx">repo</a></li>
+					<li><a href="https://en.wikipedia.org/wiki/Emotion_Engine">the joke</a></li>
+				</ul>
+				
+				emotion-nginx with an empty MagicGate™ memory card inserted vs. no MagicGate™
+				memory card inserted:
+			</p>
+			<img src="img/emotion-nginx.png">
+
+			<h3>/maths</h3>
+			<p>
+				KaTeX REPL.
+				<ul>
+					<li><a href="/maths">link</a></li>
 				</ul>
 			</p>
 
